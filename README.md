@@ -16,10 +16,15 @@ A pnpm-based starter template with Node.js 22, Next.js 16, Better Auth, React 19
 ## Quick Start
 
 ```bash
-cp .env.example .env.local
 pnpm install
+cp .env.example .env.local
+# Set BETTER_AUTH_SECRET in .env.local (e.g., openssl rand -base64 32)
 pnpm dev
 ```
+
+## Environment
+
+`BETTER_AUTH_SECRET` is required — without it, the auth handler throws on the first request. Optional overrides: `BETTER_AUTH_URL`, `NEXT_PUBLIC_APP_NAME`, `AWS_REGION` (default `ap-northeast-2`), `DYNAMODB_TABLE_NAME` (default `app-main`).
 
 ## Included
 
