@@ -1,6 +1,6 @@
 # Next.js Tailwind Starter Template
 
-Node.js 22, Next.js 16, Better Auth, React 19, TypeScript, AWS DynamoDB(Single Table Design), Tailwind CSS, pnpm 기반 템플릿입니다.
+A pnpm-based starter template with Node.js 22, Next.js 16, Better Auth, React 19, TypeScript, AWS DynamoDB (single table design), and Tailwind CSS.
 
 ## Stack
 
@@ -29,7 +29,7 @@ pnpm dev
 
 ## DynamoDB Single Table Example
 
-아래 형태로 PK/SK를 구성해 인증/도메인 데이터를 하나의 테이블에서 관리할 수 있습니다.
+Use PK/SK patterns like below to manage auth and domain entities in one table:
 
 - `USER#{id}` + `PROFILE`
 - `PROJECT#{id}` + `META`

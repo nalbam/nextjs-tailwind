@@ -13,7 +13,7 @@ const quickStart = [
   "cp .env.example .env.local",
   "pnpm install",
   "pnpm dev",
-  "브라우저에서 http://localhost:3000 접속",
+  "Open http://localhost:3000",
 ];
 
 export default function Home() {
@@ -24,11 +24,12 @@ export default function Home() {
           Production-ready starter
         </p>
         <h1 className="text-3xl leading-tight font-bold text-white md:text-5xl">
-          바로 시작 가능한 Next.js 템플릿
+          Launch your next project instantly
         </h1>
         <p className="mt-4 max-w-3xl text-base leading-7 text-slate-300 md:text-lg">
-          인증, 데이터 모델링, 디자인 시스템까지 기본기를 갖춘 템플릿입니다.
-          클론 후 바로 실행해 멋진 화면과 실전 구조를 기반으로 새 프로젝트를 시작하세요.
+          This template ships with practical foundations for authentication,
+          DynamoDB single-table modeling, and a polished UI so you can focus on
+          building product features from day one.
         </p>
         <div className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {stacks.map((stack) => (
@@ -44,7 +45,7 @@ export default function Home() {
 
       <section className="grid gap-6 md:grid-cols-2">
         <article className="rounded-2xl border border-white/10 bg-slate-900/60 p-6">
-          <h2 className="text-lg font-semibold text-white">Quick Start</h2>
+          <h2 className="text-lg font-semibold text-white">Quick start</h2>
           <ol className="mt-4 space-y-2 text-sm text-slate-300">
             {quickStart.map((step, index) => (
               <li key={step} className="flex gap-3">
@@ -58,9 +59,14 @@ export default function Home() {
         <article className="rounded-2xl border border-white/10 bg-slate-900/60 p-6">
           <h2 className="text-lg font-semibold text-white">Included foundations</h2>
           <ul className="mt-4 space-y-2 text-sm text-slate-300">
-            <li>• Better Auth API 라우트(`/api/auth/[...all]`)가 준비되어 있습니다.</li>
-            <li>• DynamoDB 단일 테이블 키 설계 유틸(`src/lib/dynamodb.ts`)을 포함합니다.</li>
-            <li>• 타입 안전한 기본 구조로 기능 추가를 빠르게 시작할 수 있습니다.</li>
+            <li>• Better Auth API route at `/api/auth/[...all]`.</li>
+            <li>
+              • DynamoDB single-table key utilities in
+              `src/lib/dynamodb.ts`.
+            </li>
+            <li>
+              • Type-safe project structure designed for immediate feature work.
+            </li>
           </ul>
         </article>
       </section>
