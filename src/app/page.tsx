@@ -1,3 +1,5 @@
+import { Button } from "@/components/ui/button";
+
 const stacks = [
   "Node.js 22",
   "Next.js 16",
@@ -6,6 +8,7 @@ const stacks = [
   "TypeScript",
   "AWS DynamoDB (Single Table)",
   "Tailwind CSS",
+  "shadcn/ui",
   "pnpm",
 ];
 
@@ -31,6 +34,11 @@ export default function Home() {
           DynamoDB single-table modeling, and a polished UI so you can focus on
           building product features from day one.
         </p>
+        <div className="mt-6 flex flex-wrap gap-3">
+          <Button>Get started</Button>
+          <Button variant="outline">View on GitHub</Button>
+          <Button variant="secondary">Read docs</Button>
+        </div>
         <div className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {stacks.map((stack) => (
             <div
