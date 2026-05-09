@@ -10,20 +10,41 @@ import { fileURLToPath } from "node:url";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const projectRoot = resolve(__dirname, "..");
 
-const source = resolve(
-  projectRoot,
-  "node_modules/pretendard/dist/web/variable/woff2/PretendardVariable.woff2",
-);
 const destDir = resolve(projectRoot, "src/app/fonts");
-const dest = resolve(destDir, "PretendardVariable.woff2");
-
-if (!existsSync(source)) {
-  console.warn(
-    `[copy-fonts] Source not found: ${source}. Skipping. Run 'pnpm install' to restore.`,
-  );
-  process.exit(0);
-}
-
 mkdirSync(destDir, { recursive: true });
-copyFileSync(source, dest);
-console.log(`[copy-fonts] Copied Pretendard → ${dest}`);
+
+const copies = [
+  {
+    label: "PretendardVariable.woff2 (UI text via next/font/local)",
+    source: resolve(
+      projectRoot,
+      "node_modules/pretendard/dist/web/variable/woff2/PretendardVariable.woff2",
+    ),
+    dest: resolve(destDir, "PretendardVariable.woff2"),
+  },
+  {
+    label: "Pretendard-Bold.woff (OG image rendering)",
+    source: resolve(
+      projectRoot,
+      "node_modules/pretendard/dist/web/static/woff/Pretendard-Bold.woff",
+    ),
+    dest: resolve(destDir, "Pretendard-Bold.woff"),
+  },
+  {
+    label: "Pretendard-Regular.woff (OG image rendering)",
+    source: resolve(
+      projectRoot,
+      "node_modules/pretendard/dist/web/static/woff/Pretendard-Regular.woff",
+    ),
+    dest: resolve(destDir, "Pretendard-Regular.woff"),
+  },
+];
+
+for (const { label, source, dest } of copies) {
+  if (!existsSync(source)) {
+    console.warn(`[copy-fonts] Missing ${label}: ${source}. Run 'pnpm install' to restore.`);
+    continue;
+  }
+  copyFileSync(source, dest);
+  console.log(`[copy-fonts] Copied ${label} → ${dest}`);
+}

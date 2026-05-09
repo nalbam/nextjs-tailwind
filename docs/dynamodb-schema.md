@@ -32,9 +32,11 @@ Enabled on the `ttl` attribute. Used by `session` (expiresAt) and `verification`
 | Model | PK | SK | GSI1PK | GSI1SK | TTL |
 |---|---|---|---|---|---|
 | `user` | `USER#<id>` | `META` | `USER:EMAIL#<email_lc>` | `USER` | — |
-| `session` | `SESSION#<id>` | `META` | `SESSION:TOKEN#<token>` | `SESSION` | `expiresAt` |
+| `session` ¹ | `SESSION#<id>` | `META` | `SESSION:TOKEN#<token>` | `SESSION` | `expiresAt` |
 | `account` | `ACCOUNT#<id>` | `META` | `ACCOUNT:PROVIDER#<providerId>#<accountId>` | `ACCOUNT` | — |
 | `verification` | `VERIFICATION#<id>` | `META` | `VERIFICATION:IDENT#<identifier>` | `VERIFICATION` | `expiresAt` |
+
+¹ When `secondaryStorage` is configured (the starter default — Valkey/Upstash), Better Auth stores sessions in the KV and **skips the `SESSION#*` rows entirely**. The mapping above only applies when `secondaryStorage` is absent or `session.storeSessionInDatabase: true` is set.
 
 `email` is normalized to lowercase before being written to GSI1PK so case-insensitive sign-in lookups hit the same partition.
 

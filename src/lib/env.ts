@@ -19,6 +19,10 @@ const serverSchema = z.object({
   REDIS_URL: z.string().optional(),
   UPSTASH_REDIS_REST_URL: z.string().url().optional(),
   UPSTASH_REDIS_REST_TOKEN: z.string().optional(),
+
+  AWS_SES_FROM: z.string().email().optional(),
+
+  LOG_LEVEL: z.enum(["debug", "info", "warn", "error"]).optional(),
 });
 
 const clientSchema = z.object({
@@ -71,6 +75,8 @@ export const getServerEnv = (): ServerEnv => {
     REDIS_URL: process.env.REDIS_URL,
     UPSTASH_REDIS_REST_URL: process.env.UPSTASH_REDIS_REST_URL,
     UPSTASH_REDIS_REST_TOKEN: process.env.UPSTASH_REDIS_REST_TOKEN,
+    AWS_SES_FROM: process.env.AWS_SES_FROM,
+    LOG_LEVEL: process.env.LOG_LEVEL,
   });
   if (!result.success) {
     return formatError("server", result.error);

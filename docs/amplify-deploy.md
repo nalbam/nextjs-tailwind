@@ -2,6 +2,15 @@
 
 This template is built to run on **AWS Amplify Hosting** with SSR (Lambda compute). The Better Auth + DynamoDB + Upstash combination keeps every request VPC-free, so cold starts stay short and there is no NAT Gateway cost.
 
+> **Next.js 16 + Amplify compatibility note**
+>
+> The Amplify Hosting documentation still lists Next.js 12–15 as the officially supported matrix, but a Hosting-side fix for the Turbopack `.next/node_modules` symlink issue rolled out **2026-02-11**, after which Next.js 16 (App Router) deploys correctly. References:
+>
+> - [aws-amplify/amplify-js#14600 (NextJS 16 Support)](https://github.com/aws-amplify/amplify-js/issues/14600) — closed 2026-02-16
+> - [aws-amplify/amplify-hosting#4074 (16.1 EEXIST symlink fix)](https://github.com/aws-amplify/amplify-hosting/issues/4074) — closed 2026-02-17
+>
+> If you adopt **Pages Router**, set `bundlePagesRouterDependencies: true` in `next.config.ts` to stay under Amplify's 230 MB build artifact limit. App Router (this template's default) is unaffected.
+
 ## 1. Prerequisites
 
 - Amplify Hosting app connected to this repository
@@ -45,6 +54,17 @@ Replace `<ACCOUNT_ID>` and the region/table name with your values.
 
 > Do **not** ship `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` as Amplify environment variables in production. The compute role's IAM credentials are picked up automatically by the AWS SDK's default credential chain.
 
+If you set `AWS_SES_FROM` to enable transactional email, also attach an SES statement to the same role:
+
+```json
+{
+  "Sid": "SESEmailSender",
+  "Effect": "Allow",
+  "Action": ["ses:SendEmail", "ses:SendRawEmail"],
+  "Resource": "arn:aws:ses:<REGION>:<ACCOUNT_ID>:identity/<verified-sender-domain-or-address>"
+}
+```
+
 ## 3. Environment variables
 
 Set these in Amplify Hosting → *App settings → Environment variables*:
@@ -63,6 +83,8 @@ Set these in Amplify Hosting → *App settings → Environment variables*:
 | `DYNAMODB_ENDPOINT` | **no** | Leave empty in prod. Only used to point at DynamoDB Local. |
 | `REDIS_URL` | **no** | Leave empty in prod (use Upstash). |
 | `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` | **no** | Use the compute role instead. |
+| `AWS_SES_FROM` | optional | Verified SES sender address. When set, `src/lib/email.ts` routes Better Auth verification / reset / invitation emails through SES via the compute role. |
+| `LOG_LEVEL` | optional | One of `debug` / `info` / `warn` / `error`. Defaults to `info` in production. |
 
 The repo's [`amplify.yml`](../amplify.yml) handles install + build; no further build configuration is required.
 

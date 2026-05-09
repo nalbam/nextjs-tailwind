@@ -28,7 +28,7 @@ docker compose up -d    # DynamoDB Local + Valkey + DynamoDB admin
 - **Path alias**: `@/*` → `./src/*`.
 - **Tailwind v4** via `@tailwindcss/postcss`. Tokens live in `src/app/globals.css` under `@theme inline`. There is no `tailwind.config.*`.
 - **shadcn/ui** (`new-york`, base color `slate`). Primitives in `src/components/ui/`. Re-exported via the `radix-ui` aggregate package, never the per-component `@radix-ui/react-*` packages.
-- **Pretendard** font is copied from `node_modules/pretendard` into `src/app/fonts/` by `scripts/copy-fonts.mjs` (postinstall) and loaded with `next/font/local`. Don't commit the woff2 — `.gitignore` excludes it.
+- **Pretendard** fonts are copied from `node_modules/pretendard` into `src/app/fonts/` by `scripts/copy-fonts.mjs` (postinstall): `PretendardVariable.woff2` (UI text via `next/font/local`) plus `Pretendard-Bold.woff` / `Pretendard-Regular.woff` (consumed by `opengraph-image.tsx` for Korean glyphs). Don't commit them — `.gitignore` excludes all three.
 - **ESLint** uses the flat-config format extending `eslint-config-next/core-web-vitals` and `eslint-config-next/typescript`. The default ignore list is re-applied explicitly.
 
 ## Architecture
@@ -49,6 +49,12 @@ docker compose up -d    # DynamoDB Local + Valkey + DynamoDB admin
 - `clientEnv` — parsed eagerly at import (NEXT_PUBLIC_* only).
 - `getServerEnv()` — lazy, server-side only, cached. Throws with a multi-line summary listing every invalid variable.
 - Add new env vars to *both* the zod schema and `.env.example`.
+
+### Email / logger / instrumentation
+
+- `src/lib/email.ts` — `getEmailService()` returns an AWS SES sender when `AWS_SES_FROM` is set, otherwise a console-only fallback. The SES SDK is imported lazily so it stays out of the cold-start bundle when unused.
+- `src/lib/logger.ts` — JSON-line structured logger (CloudWatch-friendly). Honors `LOG_LEVEL` (default `debug` in dev, `info` in prod). Use `logger.child({ ... })` to bind request-scoped fields.
+- `src/instrumentation.ts` — Next.js `register()` hook. Empty by default; this is the place to wire Sentry / OpenTelemetry / PostHog Node SDK.
 
 ### DynamoDB single-table (`src/lib/dynamodb.ts`, `src/lib/dynamodb-helpers.ts`)
 
@@ -96,6 +102,6 @@ Target: **AWS Amplify Hosting (SSR)**. Full guide in [`docs/amplify-deploy.md`](
 ## Common gotchas
 
 - `pnpm install` may prompt to re-create `node_modules` after `package.json` changes — this is normal pnpm behavior.
-- `pnpm-workspace.yaml` exists with `packages: []` so pnpm 9 stops complaining about missing packages while still honoring `allowBuilds`.
+- `pnpm-workspace.yaml` exists with `packages: []` so pnpm 11 stops complaining about missing packages while still honoring `allowBuilds` (esbuild/sharp/unrs-resolver opt-ins).
 - `next/font/local` requires the woff2 to be a literal path — it cannot reach into `node_modules`. The postinstall copy script is intentional, do not refactor it into a build-time copy.
 - DynamoDB Local doesn't support TTL — `pnpm db:init` swallows the `UnknownOperationException` and warns. Production DynamoDB does support it.

@@ -51,6 +51,11 @@ jobs:
       - name: Provision DynamoDB Local table
         run: pnpm db:init
 
+      - name: Audit dependencies
+        # Fails on high or critical vulnerabilities. Lower severities still
+        # surface in the log but don't block CI.
+        run: pnpm audit --audit-level high
+
       - name: Lint
         run: pnpm lint
 

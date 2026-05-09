@@ -2,6 +2,37 @@
 
 Production-ready scaffolding with Next.js 16, React 19, Better Auth backed by a custom **DynamoDB single-table adapter**, Tailwind v4 + shadcn/ui, Vitest, and an AWS Amplify deployment guide.
 
+## Architecture
+
+```mermaid
+flowchart LR
+  subgraph Browser
+    UI["React 19 client<br/>Tailwind v4 + shadcn/ui"]
+  end
+
+  subgraph Amplify["AWS Amplify Hosting (Lambda SSR)"]
+    NEXT["Next.js 16 App Router<br/>proxy.ts cookie gate"]
+    BA["Better Auth<br/>+ DynamoDB adapter"]
+    NEXT --> BA
+  end
+
+  subgraph AWS["AWS account"]
+    DDB[("DynamoDB<br/>app-main + GSI1 + TTL")]
+    SES[(SES / Resend<br/>verification email)]
+  end
+
+  subgraph KV["Session / rate-limit KV"]
+    UPSTASH[("Upstash Redis<br/>secondaryStorage")]
+  end
+
+  UI -- "HTTPS" --> NEXT
+  BA -- "GetItem / Query GSI1<br/>PutItem / Delete" --> DDB
+  BA -- "session lookup<br/>rate-limit" --> UPSTASH
+  BA -. "verification / reset" .-> SES
+```
+
+For local development, Upstash is replaced by docker-compose Valkey and DynamoDB by DynamoDB Local.
+
 ## Stack
 
 - Node.js 22, pnpm 11
@@ -51,9 +82,9 @@ Try the demo flow:
 src/
 ├── app/
 │   ├── (auth)/            sign-up + sign-in (client)
-│   ├── (protected)/       middleware-guarded dashboard
+│   ├── (protected)/       proxy-guarded dashboard (cookie hint + server getSession)
 │   ├── api/auth/[...all]  Better Auth handler (lazy)
-│   ├── api/health         /api/health for Amplify health checks
+│   ├── api/health         /api/health for Amplify health checks (?probe=db opt-in)
 │   ├── error.tsx · not-found.tsx · loading.tsx
 │   ├── manifest.ts · robots.ts · sitemap.ts · opengraph-image.tsx
 │   └── layout.tsx         Pretendard via next/font/local + design tokens
@@ -67,7 +98,10 @@ src/
 │   ├── auth-client.ts     createAuthClient(...) for the browser
 │   ├── dynamodb.ts        Client + key helpers (validateId, keys, gsi1, ttlFromDate)
 │   ├── dynamodb-helpers.ts Thin DocumentClient wrappers
-│   └── env.ts             zod-validated server/client env
+│   ├── email.ts           AWS SES sender (lazy) with console fallback
+│   ├── env.ts             zod-validated server/client env
+│   └── logger.ts          Structured JSON logger (LOG_LEVEL aware)
+├── instrumentation.ts     Next.js register() hook (Sentry/OTel entry, empty by default)
 └── proxy.ts               Cheap session-cookie presence check (Next 16 file convention)
 ```
 
@@ -79,6 +113,12 @@ Documented in [`.env.example`](./.env.example). At minimum:
 - `AWS_REGION`, `DYNAMODB_TABLE_NAME` — DynamoDB target
 - `DYNAMODB_ENDPOINT` (dev only), `REDIS_URL` (dev), `UPSTASH_REDIS_REST_URL`/`_TOKEN` (prod)
 - `BETTER_AUTH_URL`, `NEXT_PUBLIC_BETTER_AUTH_URL`, `NEXT_PUBLIC_APP_NAME`
+
+Optional:
+
+- `AWS_SES_FROM` — verified SES sender; activates `src/lib/email.ts`
+- `TRUSTED_ORIGINS` — comma-separated extra origins for Better Auth CSRF
+- `LOG_LEVEL` — `debug`/`info`/`warn`/`error` (defaults: dev=debug, prod=info)
 
 `src/lib/env.ts` validates these via zod with a fail-fast error listing every offending variable.
 
