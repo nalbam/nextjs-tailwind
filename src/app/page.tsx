@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import { Button } from "@/components/ui/button";
 
 const stacks = [
@@ -14,36 +16,43 @@ const stacks = [
 
 const quickStart = [
   "cp .env.example .env.local",
+  "docker compose up -d",
   "pnpm install",
+  "pnpm db:init",
   "pnpm dev",
-  "Open http://localhost:3000",
 ];
 
 export default function Home() {
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-6xl flex-col justify-center gap-10 px-6 py-12 md:px-12">
-      <section className="rounded-3xl border border-white/10 bg-slate-900/70 p-8 shadow-2xl shadow-cyan-500/10 backdrop-blur md:p-12">
-        <p className="mb-4 inline-flex rounded-full border border-cyan-300/30 bg-cyan-500/10 px-3 py-1 text-xs font-semibold tracking-widest text-cyan-200 uppercase">
+      <section className="border-border/60 bg-card/70 rounded-3xl border p-8 shadow-2xl shadow-cyan-500/10 backdrop-blur md:p-12">
+        <p className="border-primary/30 bg-primary/10 text-primary mb-4 inline-flex rounded-full border px-3 py-1 text-xs font-semibold tracking-widest uppercase">
           Production-ready starter
         </p>
-        <h1 className="text-3xl leading-tight font-bold text-white md:text-5xl">
+        <h1 className="text-foreground text-3xl leading-tight font-bold md:text-5xl">
           Launch your next project instantly
         </h1>
-        <p className="mt-4 max-w-3xl text-base leading-7 text-slate-300 md:text-lg">
-          This template ships with practical foundations for authentication,
-          DynamoDB single-table modeling, and a polished UI so you can focus on
-          building product features from day one.
+        <p className="text-muted-foreground mt-4 max-w-3xl text-base leading-7 md:text-lg">
+          This template ships with Better Auth on DynamoDB single-table, Tailwind v4 + shadcn/ui, a
+          Vitest harness, and an Amplify deploy guide so you can focus on building product features
+          from day one.
         </p>
         <div className="mt-6 flex flex-wrap gap-3">
-          <Button>Get started</Button>
-          <Button variant="outline">View on GitHub</Button>
-          <Button variant="secondary">Read docs</Button>
+          <Button asChild>
+            <Link href="/signup">Get started</Link>
+          </Button>
+          <Button asChild variant="outline">
+            <Link href="/login">Sign in</Link>
+          </Button>
+          <Button asChild variant="secondary">
+            <Link href="/dashboard">Dashboard</Link>
+          </Button>
         </div>
         <div className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {stacks.map((stack) => (
             <div
               key={stack}
-              className="rounded-xl border border-slate-700/80 bg-slate-950/70 px-4 py-3 text-sm font-medium text-slate-100"
+              className="border-border bg-background/60 text-foreground rounded-xl border px-4 py-3 text-sm font-medium"
             >
               {stack}
             </div>
@@ -52,29 +61,28 @@ export default function Home() {
       </section>
 
       <section className="grid gap-6 md:grid-cols-2">
-        <article className="rounded-2xl border border-white/10 bg-slate-900/60 p-6">
-          <h2 className="text-lg font-semibold text-white">Quick start</h2>
-          <ol className="mt-4 space-y-2 text-sm text-slate-300">
+        <article className="border-border/60 bg-card/60 rounded-2xl border p-6">
+          <h2 className="text-foreground text-lg font-semibold">Quick start</h2>
+          <ol className="text-muted-foreground mt-4 space-y-2 text-sm">
             {quickStart.map((step, index) => (
               <li key={step} className="flex gap-3">
-                <span className="text-cyan-300">{index + 1}.</span>
-                <code>{step}</code>
+                <span className="text-primary">{index + 1}.</span>
+                <code className="text-foreground">{step}</code>
               </li>
             ))}
           </ol>
         </article>
 
-        <article className="rounded-2xl border border-white/10 bg-slate-900/60 p-6">
-          <h2 className="text-lg font-semibold text-white">Included foundations</h2>
-          <ul className="mt-4 space-y-2 text-sm text-slate-300">
-            <li>• Better Auth API route at `/api/auth/[...all]`.</li>
+        <article className="border-border/60 bg-card/60 rounded-2xl border p-6">
+          <h2 className="text-foreground text-lg font-semibold">Included foundations</h2>
+          <ul className="text-muted-foreground mt-4 space-y-2 text-sm">
             <li>
-              • DynamoDB single-table key utilities in
-              `src/lib/dynamodb.ts`.
+              • Better Auth API route at <code>/api/auth/[...all]</code> wired to DynamoDB.
             </li>
             <li>
-              • Type-safe project structure designed for immediate feature work.
+              • Single-table key utilities and a typed adapter at <code>src/lib/auth/</code>.
             </li>
+            <li>• Demo flows for sign-up, sign-in, and protected routes ready to extend.</li>
           </ul>
         </article>
       </section>

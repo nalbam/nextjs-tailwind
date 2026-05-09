@@ -34,6 +34,9 @@ yarn-error.log*
 .env*.local
 .env
 
+# do not track Pretendard font copy — restored via postinstall (see scripts/copy-fonts.ts)
+src/app/fonts/PretendardVariable.woff2
+
 # vercel
 .vercel
 
