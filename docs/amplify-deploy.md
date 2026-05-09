@@ -84,6 +84,9 @@ Set these in Amplify Hosting → *App settings → Environment variables*:
 | `REDIS_URL` | **no** | Leave empty in prod (use Upstash). |
 | `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` | **no** | Use the compute role instead. |
 | `AWS_SES_FROM` | optional | Verified SES sender address. When set, `src/lib/email.ts` routes Better Auth verification / reset / invitation emails through SES via the compute role. |
+| `AUTH_EMAIL_ENABLED` / `NEXT_PUBLIC_AUTH_EMAIL_ENABLED` | optional | Defaults to enabled. Set to `false` to disable email/password sign-in. |
+| `AUTH_GOOGLE_ID` / `AUTH_GOOGLE_SECRET` | optional | OAuth client from <https://console.cloud.google.com/apis/credentials>. Authorized redirect URI must include `${BETTER_AUTH_URL}/api/auth/callback/google`. |
+| `NEXT_PUBLIC_AUTH_GOOGLE_ENABLED` | optional | Set to `true` to render the "Continue with Google" button. Set together with the two `AUTH_GOOGLE_*` secrets. |
 | `LOG_LEVEL` | optional | One of `debug` / `info` / `warn` / `error`. Defaults to `info` in production. |
 
 The repo's [`amplify.yml`](../amplify.yml) handles install + build; no further build configuration is required.

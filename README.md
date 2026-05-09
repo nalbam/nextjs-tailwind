@@ -116,6 +116,9 @@ Documented in [`.env.example`](./.env.example). At minimum:
 
 Optional:
 
+- `AUTH_EMAIL_ENABLED` / `NEXT_PUBLIC_AUTH_EMAIL_ENABLED` — both default to enabled. Set either to `"false"` to disable email/password sign-in (server-side and UI respectively).
+- `AUTH_GOOGLE_ID` / `AUTH_GOOGLE_SECRET` — enables Google OAuth on `/login` + `/signup`. Authorized redirect URI: `${BETTER_AUTH_URL}/api/auth/callback/google`
+- `NEXT_PUBLIC_AUTH_GOOGLE_ENABLED=true` — surfaces the "Continue with Google" button on the auth pages (server config still requires the two secrets above)
 - `AWS_SES_FROM` — verified SES sender; activates `src/lib/email.ts`
 - `TRUSTED_ORIGINS` — comma-separated extra origins for Better Auth CSRF
 - `LOG_LEVEL` — `debug`/`info`/`warn`/`error` (defaults: dev=debug, prod=info)

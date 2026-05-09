@@ -5,6 +5,8 @@ All notable changes to this template are documented here. Format follows [Keep a
 ## [Unreleased]
 
 ### Added
+- Google OAuth on `/login` + `/signup` via Better Auth `socialProviders.google`, gated server-side on `AUTH_GOOGLE_ID` / `AUTH_GOOGLE_SECRET` and client-side on `NEXT_PUBLIC_AUTH_GOOGLE_ENABLED`. Button lives at `src/app/(auth)/google-button.tsx` and uses the bundled `public/images/google.png` asset.
+- Email/password auth toggle (`AUTH_EMAIL_ENABLED` server / `NEXT_PUBLIC_AUTH_EMAIL_ENABLED` UI), defaults to enabled. Auth pages render correctly for any combination of the two methods, including a fallback when both are disabled.
 - DynamoDB single-table Better Auth adapter (`src/lib/auth/dynamodb-adapter.ts`)
 - Upstash Redis (prod) / Valkey (dev) `secondaryStorage` adapter with auto fallback
 - zod-validated env (`src/lib/env.ts`) with lazy server resolution

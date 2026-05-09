@@ -8,6 +8,17 @@ import { clientEnv, getServerEnv, trustedOriginsList } from "@/lib/env";
 const createAuthInstance = () => {
   const env = getServerEnv();
   const trustedOrigins = trustedOriginsList(env);
+
+  const socialProviders =
+    env.AUTH_GOOGLE_ID && env.AUTH_GOOGLE_SECRET
+      ? {
+          google: {
+            clientId: env.AUTH_GOOGLE_ID,
+            clientSecret: env.AUTH_GOOGLE_SECRET,
+          },
+        }
+      : undefined;
+
   return betterAuth({
     appName: clientEnv.NEXT_PUBLIC_APP_NAME,
     secret: env.BETTER_AUTH_SECRET,
@@ -16,8 +27,9 @@ const createAuthInstance = () => {
     database: dynamodbAdapter,
     secondaryStorage: hasSecondaryStorage() ? secondaryStorage : undefined,
     emailAndPassword: {
-      enabled: true,
+      enabled: env.AUTH_EMAIL_ENABLED,
     },
+    socialProviders,
     advanced: {
       cookies: {
         sessionToken: {

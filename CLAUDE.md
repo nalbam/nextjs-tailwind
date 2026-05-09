@@ -38,6 +38,9 @@ docker compose up -d    # DynamoDB Local + Valkey + DynamoDB admin
 - `getAuth()` is a lazy singleton — `betterAuth(...)` is constructed on first call so `pnpm build` succeeds without secrets at import time. Preserve this pattern when extending auth.
 - `database: dynamodbAdapter` — the adapter factory in `src/lib/auth/dynamodb-adapter.ts`. Better Auth invokes it with its own options.
 - `secondaryStorage: secondaryStorage` (when `REDIS_URL` or `UPSTASH_REDIS_REST_URL` is set). The KV facade is sync; the underlying client is resolved lazily on first `get/set/delete`.
+- `emailAndPassword.enabled` is driven by `AUTH_EMAIL_ENABLED` (server) and the matching `NEXT_PUBLIC_AUTH_EMAIL_ENABLED` flag controls whether the form is rendered on `/login` and `/signup`. Both default to enabled; set either to `"false"` to disable.
+- `socialProviders.google` — registered only when *both* `AUTH_GOOGLE_ID` and `AUTH_GOOGLE_SECRET` are set. The client also reads `NEXT_PUBLIC_AUTH_GOOGLE_ENABLED` to decide whether to render the button (`src/app/(auth)/google-button.tsx`). Add new providers by extending the `socialProviders` block in `auth.ts` and a parallel client flag.
+- The auth pages handle every combination: email-only (default), Google-only, both, or neither (renders an instructional fallback).
 - `plugins: [nextCookies()]` so server actions get correct `Set-Cookie` semantics.
 - The `[...all]` route uses `toNextJsHandler((req) => getAuth().handler(req))` — keep the wrapper so `getAuth()` stays lazy.
 - `auth-client.ts` is `"use client"` and resolves `baseURL` from `clientEnv.NEXT_PUBLIC_BETTER_AUTH_URL` → `window.location.origin` → localhost fallback. Do not import it from server components.

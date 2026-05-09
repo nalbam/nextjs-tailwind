@@ -22,12 +22,27 @@ const serverSchema = z.object({
 
   AWS_SES_FROM: z.string().email().optional(),
 
+  AUTH_EMAIL_ENABLED: z
+    .union([z.literal("true"), z.literal("false")])
+    .optional()
+    .transform((v) => v !== "false"),
+  AUTH_GOOGLE_ID: z.string().optional(),
+  AUTH_GOOGLE_SECRET: z.string().optional(),
+
   LOG_LEVEL: z.enum(["debug", "info", "warn", "error"]).optional(),
 });
 
 const clientSchema = z.object({
   NEXT_PUBLIC_BETTER_AUTH_URL: z.string().url().optional(),
   NEXT_PUBLIC_APP_NAME: z.string().default("Next.js Tailwind Starter"),
+  NEXT_PUBLIC_AUTH_EMAIL_ENABLED: z
+    .union([z.literal("true"), z.literal("false")])
+    .optional()
+    .transform((v) => v !== "false"),
+  NEXT_PUBLIC_AUTH_GOOGLE_ENABLED: z
+    .union([z.literal("true"), z.literal("false")])
+    .optional()
+    .transform((v) => v === "true"),
 });
 
 export type ServerEnv = z.infer<typeof serverSchema>;
@@ -44,6 +59,8 @@ const parseClient = (): ClientEnv => {
   const result = clientSchema.safeParse({
     NEXT_PUBLIC_BETTER_AUTH_URL: process.env.NEXT_PUBLIC_BETTER_AUTH_URL,
     NEXT_PUBLIC_APP_NAME: process.env.NEXT_PUBLIC_APP_NAME,
+    NEXT_PUBLIC_AUTH_EMAIL_ENABLED: process.env.NEXT_PUBLIC_AUTH_EMAIL_ENABLED,
+    NEXT_PUBLIC_AUTH_GOOGLE_ENABLED: process.env.NEXT_PUBLIC_AUTH_GOOGLE_ENABLED,
   });
   if (!result.success) {
     return formatError("client", result.error);
@@ -76,6 +93,9 @@ export const getServerEnv = (): ServerEnv => {
     UPSTASH_REDIS_REST_URL: process.env.UPSTASH_REDIS_REST_URL,
     UPSTASH_REDIS_REST_TOKEN: process.env.UPSTASH_REDIS_REST_TOKEN,
     AWS_SES_FROM: process.env.AWS_SES_FROM,
+    AUTH_EMAIL_ENABLED: process.env.AUTH_EMAIL_ENABLED,
+    AUTH_GOOGLE_ID: process.env.AUTH_GOOGLE_ID,
+    AUTH_GOOGLE_SECRET: process.env.AUTH_GOOGLE_SECRET,
     LOG_LEVEL: process.env.LOG_LEVEL,
   });
   if (!result.success) {
