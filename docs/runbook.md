@@ -129,6 +129,20 @@ docker compose up -d
 pnpm db:init
 ```
 
+## Tear down the DynamoDB table
+
+`pnpm db:delete` removes the application table, but only if it carries the cloud-man `ManagedBy=CloudManager` tag (the same tag `pnpm db:init` applies). This avoids accidentally deleting a pre-existing table that wasn't created by this starter or cloud-man.
+
+```bash
+# Interactive: prompts to retype the table name
+pnpm db:delete
+
+# Non-interactive (CI, scripts):
+DDB_DELETE_CONFIRM=Demo-dev pnpm db:delete
+```
+
+After deletion you can re-run `pnpm db:init` to recreate the table with the same schema.
+
 ## Emergency: Amplify build is failing
 
 Most common causes (in order):

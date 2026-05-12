@@ -70,6 +70,22 @@ The init script is idempotent: it creates the table on first run, enables TTL, a
 
 Provision via Terraform / CDK / console. The `pnpm db:init` script also works against the real endpoint if you set the standard AWS credential chain plus `AWS_REGION` and `DYNAMODB_TABLE_NAME` (omit `DYNAMODB_ENDPOINT`).
 
+## Cloud-man compatibility
+
+`pnpm db:init` tags every table it creates so they show up in [cloud-man](https://github.com/opspresso/cloud-man), the in-house AWS resource manager. The tag set matches what cloud-man itself applies when creating a table:
+
+| Tag key | Value |
+|---|---|
+| `ManagedBy` | `CloudManager` (the discriminator cloud-man filters on) |
+| `Name` | `<DYNAMODB_TABLE_NAME>` |
+| `Resource-Type` | `dynamodb:table` |
+| `Created-By` | `cloud-manager` |
+| `Created-At` | ISO timestamp of the script run |
+
+Re-running `pnpm db:init` against an existing table is a no-op for tagging if `ManagedBy=CloudManager` is already present; otherwise it backfills the full set via `TagResource`. DynamoDB Local doesn't implement `TagResource`, so tagging is silently skipped when `DYNAMODB_ENDPOINT` is set.
+
+The reverse direction works too: a table created via cloud-man's UI with `PK`/`SK` (S, S) + `GSI1` (`GSI1PK`/`GSI1SK`, projection ALL) + TTL on `ttl` matches this adapter's expectations exactly. If you create the table via cloud-man, point `DYNAMODB_TABLE_NAME` at it and skip `pnpm db:init`.
+
 ## Migration from the previous schema
 
 If you started this template before the auth adapter was wired up, the original `keys.user/project/userProject` data is unaffected. The new auth rows live on different partitions (`USER#<authId>/META`, etc.) and use GSI1, which the original schema did not exercise.

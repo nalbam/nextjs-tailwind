@@ -79,7 +79,8 @@ Try the demo flow:
 | `pnpm typecheck` | `tsc --noEmit` |
 | `pnpm format` / `format:check` | Prettier |
 | `pnpm test` / `test:watch` / `test:ui` | Vitest |
-| `pnpm db:init` | Create the application table + GSI1 + TTL on the configured DynamoDB endpoint (real AWS by default, or DynamoDB Local when `DYNAMODB_ENDPOINT` is set) |
+| `pnpm db:init` | Create the application table + GSI1 + TTL on the configured DynamoDB endpoint (real AWS by default, or DynamoDB Local when `DYNAMODB_ENDPOINT` is set). Also applies cloud-man tags. |
+| `pnpm db:delete` | Delete the application table. Refuses tables missing the `ManagedBy=CloudManager` tag. Interactive prompt; set `DDB_DELETE_CONFIRM=<table>` for non-interactive use. |
 
 ## Project layout
 

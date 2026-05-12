@@ -17,6 +17,7 @@ pnpm format             # Prettier write
 pnpm test               # Vitest run
 pnpm test:watch
 pnpm db:init            # provision DynamoDB table + GSI1 + TTL (real AWS by default)
+pnpm db:delete          # delete the table (refuses without ManagedBy=CloudManager tag)
 docker compose up -d    # Valkey only (KV)
 docker compose --profile test up -d   # also starts DynamoDB Local + admin UI for integration tests
 ```
