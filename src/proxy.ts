@@ -20,6 +20,11 @@ const hasSessionCookie = (request: NextRequest): boolean => {
 export function proxy(request: NextRequest) {
   if (!hasSessionCookie(request)) {
     const url = new URL("/login", request.url);
+    // Preserve where the user was trying to go so /login can send them back
+    // there after authenticating. Pathname+search only — never the full URL,
+    // to avoid leaking the host into a query string.
+    const target = `${request.nextUrl.pathname}${request.nextUrl.search}`;
+    url.searchParams.set("redirect", target);
     return NextResponse.redirect(url);
   }
   return NextResponse.next();

@@ -1,6 +1,7 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { Loader2 } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -13,9 +14,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { authClient } from "@/lib/auth-client";
 import { clientEnv } from "@/lib/env";
+import { safeInternalPath } from "@/lib/safe-redirect";
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectTarget = safeInternalPath(searchParams.get("redirect"), "/dashboard");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -28,13 +32,15 @@ export default function LoginPage() {
     if (submitting) return;
     setSubmitting(true);
     const result = await authClient.signIn.email({ email, password });
-    setSubmitting(false);
     if (result.error) {
+      setSubmitting(false);
       toast.error(result.error.message ?? "Failed to sign in.");
       return;
     }
+    // Keep `submitting` true through the navigation so the spinner stays
+    // visible until the destination paints.
     toast.success("Signed in.");
-    router.push("/dashboard");
+    router.push(redirectTarget);
     router.refresh();
   };
 
@@ -51,7 +57,7 @@ export default function LoginPage() {
         </CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
-        {googleEnabled ? <GoogleButton callbackURL="/dashboard" /> : null}
+        {googleEnabled ? <GoogleButton callbackURL={redirectTarget} /> : null}
         {googleEnabled && emailEnabled ? <OrSeparator /> : null}
         {emailEnabled ? (
           <form className="flex flex-col gap-4" onSubmit={onSubmit}>
@@ -79,6 +85,7 @@ export default function LoginPage() {
               />
             </div>
             <Button type="submit" disabled={submitting}>
+              {submitting ? <Loader2 className="animate-spin" aria-hidden="true" /> : null}
               {submitting ? "Signing in…" : "Sign in"}
             </Button>
             <p className="text-muted-foreground text-center text-sm">

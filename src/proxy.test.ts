@@ -2,19 +2,31 @@ import { describe, expect, it } from "vitest";
 
 import { proxy } from "./proxy";
 
-const buildRequest = (cookieNames: string[]) =>
+const buildRequest = (cookieNames: string[], pathname = "/dashboard", search = "") =>
   ({
-    url: "http://localhost:3000/dashboard",
+    url: `http://localhost:3000${pathname}${search}`,
+    nextUrl: { pathname, search },
     cookies: {
       getAll: () => cookieNames.map((name) => ({ name, value: "x" })),
     },
   }) as never;
 
 describe("proxy", () => {
-  it("redirects to /login when no session cookie present", () => {
+  it("redirects to /login when no session cookie present and preserves the redirect target", () => {
     const res = proxy(buildRequest([])) as { status: number; headers: Headers };
     expect(res.status).toBe(307);
-    expect(res.headers.get("location")).toMatch(/\/login$/);
+    const location = res.headers.get("location") ?? "";
+    expect(location).toMatch(/\/login\?/);
+    expect(new URL(location).searchParams.get("redirect")).toBe("/dashboard");
+  });
+
+  it("propagates query string into the redirect param", () => {
+    const res = proxy(buildRequest([], "/dashboard", "?tab=billing")) as {
+      status: number;
+      headers: Headers;
+    };
+    const location = res.headers.get("location") ?? "";
+    expect(new URL(location).searchParams.get("redirect")).toBe("/dashboard?tab=billing");
   });
 
   it("passes through with the bare session cookie name", () => {

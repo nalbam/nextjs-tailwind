@@ -1,6 +1,8 @@
 import Link from "next/link";
 
+import { SignOutButton } from "@/components/sign-out-button";
 import { Button } from "@/components/ui/button";
+import { getSession } from "@/lib/auth/session";
 
 const stacks = [
   "Node.js 22",
@@ -22,7 +24,10 @@ const quickStart = [
   "pnpm dev",
 ];
 
-export default function Home() {
+export default async function Home() {
+  const session = await getSession();
+  const user = session?.user;
+
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-6xl flex-col justify-center gap-10 px-6 py-12 md:px-12">
       <section className="border-border/60 bg-card/70 rounded-3xl border p-8 shadow-2xl shadow-cyan-500/10 backdrop-blur md:p-12">
@@ -37,17 +42,39 @@ export default function Home() {
           Vitest harness, and an Amplify deploy guide so you can focus on building product features
           from day one.
         </p>
-        <div className="mt-6 flex flex-wrap gap-3">
-          <Button asChild>
-            <Link href="/signup">Get started</Link>
-          </Button>
-          <Button asChild variant="outline">
-            <Link href="/login">Sign in</Link>
-          </Button>
-          <Button asChild variant="secondary">
-            <Link href="/dashboard">Dashboard</Link>
-          </Button>
-        </div>
+        {user ? (
+          <div className="border-border/60 bg-background/60 mt-6 flex flex-wrap items-center gap-4 rounded-2xl border px-5 py-4">
+            <div className="min-w-0 flex-1">
+              <p className="text-muted-foreground text-xs font-semibold tracking-widest uppercase">
+                Signed in
+              </p>
+              <p className="text-foreground mt-1 truncate text-base font-medium">
+                {user.name ?? user.email}
+              </p>
+              {user.name ? (
+                <p className="text-muted-foreground truncate text-sm">{user.email}</p>
+              ) : null}
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Button asChild>
+                <Link href="/dashboard">Dashboard</Link>
+              </Button>
+              <SignOutButton />
+            </div>
+          </div>
+        ) : (
+          <div className="mt-6 flex flex-wrap gap-3">
+            <Button asChild>
+              <Link href="/signup?redirect=/">Get started</Link>
+            </Button>
+            <Button asChild variant="outline">
+              <Link href="/login?redirect=/">Sign in</Link>
+            </Button>
+            <Button asChild variant="secondary">
+              <Link href="/dashboard">Dashboard</Link>
+            </Button>
+          </div>
+        )}
         <div className="mt-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {stacks.map((stack) => (
             <div

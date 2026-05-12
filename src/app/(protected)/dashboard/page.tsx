@@ -1,5 +1,7 @@
-import { SignOutButton } from "@/app/(protected)/dashboard/sign-out-button";
+import Link from "next/link";
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { SignOutButton } from "@/components/sign-out-button";
 import { getSession } from "@/lib/auth/session";
 
 export const metadata = {
@@ -12,6 +14,12 @@ export default async function DashboardPage() {
 
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-3xl flex-col gap-6 px-6 py-12">
+      <Link
+        href="/"
+        className="text-muted-foreground hover:text-foreground text-sm transition self-start"
+      >
+        ← Home
+      </Link>
       <div className="flex items-center justify-between">
         <div>
           <p className="text-muted-foreground text-xs font-semibold tracking-widest uppercase">

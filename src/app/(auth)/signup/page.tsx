@@ -1,6 +1,7 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { Loader2 } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -13,9 +14,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { authClient } from "@/lib/auth-client";
 import { clientEnv } from "@/lib/env";
+import { safeInternalPath } from "@/lib/safe-redirect";
 
 export default function SignupPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirectTarget = safeInternalPath(searchParams.get("redirect"), "/dashboard");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -33,13 +37,13 @@ export default function SignupPage() {
       password,
       name: name || email.split("@")[0] || "User",
     });
-    setSubmitting(false);
     if (result.error) {
+      setSubmitting(false);
       toast.error(result.error.message ?? "Failed to sign up.");
       return;
     }
     toast.success("Account created.");
-    router.push("/dashboard");
+    router.push(redirectTarget);
     router.refresh();
   };
 
@@ -56,7 +60,7 @@ export default function SignupPage() {
         </CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
-        {googleEnabled ? <GoogleButton callbackURL="/dashboard" /> : null}
+        {googleEnabled ? <GoogleButton callbackURL={redirectTarget} /> : null}
         {googleEnabled && emailEnabled ? <OrSeparator /> : null}
         {emailEnabled ? (
           <form className="flex flex-col gap-4" onSubmit={onSubmit}>
@@ -95,6 +99,7 @@ export default function SignupPage() {
               />
             </div>
             <Button type="submit" disabled={submitting}>
+              {submitting ? <Loader2 className="animate-spin" aria-hidden="true" /> : null}
               {submitting ? "Creating…" : "Create account"}
             </Button>
             <p className="text-muted-foreground text-center text-sm">
