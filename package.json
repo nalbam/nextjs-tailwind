@@ -43,7 +43,7 @@
     "zod": "^4.0.0"
   },
   "devDependencies": {
-    "@commitlint/cli": "^20.5.3",
+    "@commitlint/cli": "^21.0.0",
     "@commitlint/config-conventional": "^20.5.3",
     "@next/bundle-analyzer": "^16.2.4",
     "@tailwindcss/postcss": "^4",
