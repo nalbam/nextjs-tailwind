@@ -29,6 +29,9 @@ jobs:
       AWS_SECRET_ACCESS_KEY: local
       DYNAMODB_TABLE_NAME: app-main-test
       DYNAMODB_ENDPOINT: http://localhost:8000
+      # Forces the adapter integration suite to run for real instead of
+      # silently skipping when the service container is unreachable.
+      DDB_INTEGRATION_REQUIRED: "true"
       REDIS_URL: redis://localhost:6379
       NEXT_PUBLIC_BETTER_AUTH_URL: http://localhost:3000
       NEXT_PUBLIC_APP_NAME: CI

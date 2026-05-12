@@ -152,6 +152,20 @@ Most common causes (in order):
 3. **Pretendard postinstall missed** → `scripts/copy-fonts.mjs` is meant to be a postinstall hook. Verify `pnpm install` ran without `--ignore-scripts`.
 4. **DynamoDB IAM access denied** → IAM policy on the SSR compute role missing `arn:.../table/app-main/index/*`.
 
+## Tighten CSP to enforce mode
+
+`next.config.ts` ships `Content-Security-Policy-Report-Only` so violations log to `/api/csp-report` without blocking anything. Once your deployment runs clean for a few days, switch to enforce:
+
+1. Watch `/api/csp-report` logs (or your CloudWatch query) — confirm there are no entries from legitimate flows (sign-in, dashboard, OAuth callback).
+2. In `next.config.ts`, rename `Content-Security-Policy-Report-Only` to `Content-Security-Policy`. Keep `report-uri` so future regressions surface.
+3. Drop `'unsafe-inline'` and `'unsafe-eval'` from `script-src` only after introducing a nonce. The Next.js way:
+   - Generate a nonce in `proxy.ts` and propagate it via response header.
+   - Read it in the root layout: `headers().get("x-nonce")` and forward to `<Script nonce={nonce}>` / inline `<style nonce={nonce}>`.
+   - Tailwind v4 emits a static stylesheet, so `style-src 'self'` (no `'unsafe-inline'`) is achievable once you've removed every inline `style={…}` literal — `next.config.ts` styled-jsx is the usual remaining holdout.
+4. Deploy, re-watch the report endpoint for 24h, then remove `Content-Security-Policy-Report-Only` entirely.
+
+If `report-to` (Reporting API) starts dominating the log volume, narrow the `connect-src` allowlist before tightening other directives — that's where third-party scripts (analytics, error trackers) typically trip first.
+
 ## Backups
 
 DynamoDB on-demand backups are not enabled by default in the starter. For production:

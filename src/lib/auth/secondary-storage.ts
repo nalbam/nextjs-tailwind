@@ -38,7 +38,11 @@ const buildUpstashBackend = async (url: string, token: string): Promise<KvBacken
 
 const buildIoredisBackend = async (url: string): Promise<KvBackend> => {
   const { default: Redis } = await import("ioredis");
-  const redis = new Redis(url, { lazyConnect: false, maxRetriesPerRequest: 3 });
+  // lazyConnect avoids opening a socket during module import. On Lambda /
+  // Amplify SSR cold starts, an unreachable Valkey would otherwise stall the
+  // first response while ioredis exhausts its connect retries before the
+  // handler even runs.
+  const redis = new Redis(url, { lazyConnect: true, maxRetriesPerRequest: 3 });
   return {
     get: (key) => redis.get(key),
     set: async (key, value, ttl) => {
