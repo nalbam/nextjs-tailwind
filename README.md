@@ -91,10 +91,13 @@ src/
 │   ├── (protected)/       proxy-guarded dashboard (cookie hint + server getSession)
 │   ├── api/auth/[...all]  Better Auth handler (lazy)
 │   ├── api/health         /api/health for Amplify health checks (?probe=db opt-in)
+│   ├── api/csp-report     Receives browser CSP violation reports → structured log
 │   ├── error.tsx · not-found.tsx · loading.tsx
 │   ├── manifest.ts · robots.ts · sitemap.ts · opengraph-image.tsx
 │   └── layout.tsx         Pretendard via next/font/local + design tokens
-├── components/ui/         shadcn primitives (button/card/input/label/alert/sonner)
+├── components/
+│   ├── sign-out-button.tsx  Client sign-out button used by / and /dashboard
+│   └── ui/                shadcn primitives (button/card/input/label/alert/sonner)
 ├── lib/
 │   ├── auth/
 │   │   ├── dynamodb-adapter.ts    Better Auth DBAdapter on single-table
@@ -106,7 +109,8 @@ src/
 │   ├── dynamodb-helpers.ts Thin DocumentClient wrappers
 │   ├── email.ts           AWS SES sender (lazy) with console fallback
 │   ├── env.ts             zod-validated server/client env
-│   └── logger.ts          Structured JSON logger (LOG_LEVEL aware)
+│   ├── logger.ts          Structured JSON logger (LOG_LEVEL aware)
+│   └── safe-redirect.ts   safeInternalPath() — open-redirect guard for ?redirect=
 ├── instrumentation.ts     Next.js register() hook (Sentry/OTel entry, empty by default)
 └── proxy.ts               Cheap session-cookie presence check (Next 16 file convention)
 ```
@@ -166,6 +170,8 @@ CI ([`/.github/workflows/ci.yml`](./.github/workflows/ci.yml)) runs lint + typec
 - `proxy.ts` (Next 16's renamed `middleware`) does a cheap cookie presence check; the actual session validation happens in the `(protected)` layout via `auth.api.getSession({ headers })`.
 - The DynamoDB adapter advertises `supportsDates: false`, so Better Auth converts `Date` ↔ ISO string transparently before items hit DynamoDB.
 - The Better Auth `database` option is the adapter factory, not an instance — Better Auth invokes it with its own options at startup.
+- `next.config.ts` ships baseline security headers (HSTS, X-Frame-Options, Referrer-Policy, Permissions-Policy) plus a `Content-Security-Policy-Report-Only` that POSTs violations to `/api/csp-report`. Flip the header name to `Content-Security-Policy` once your deployment is clean.
+- Better Auth enables `rateLimit` (60s window, 100 req) in production and pins the session cookie to `sameSite=lax, httpOnly, secure` (prod). Rate-limit storage piggybacks on `secondaryStorage` when present, otherwise falls back to in-memory.
 
 ## License
 

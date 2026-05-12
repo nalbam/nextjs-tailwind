@@ -59,12 +59,15 @@ Updates that touch indexed fields are handled via `PutItem` (replacing the row e
 
 ### Local (DynamoDB Local + docker-compose)
 
+`dynamodb-local` (and its admin UI) live under the `test` Compose profile; the default `docker compose up -d` only starts Valkey. Bring them up explicitly and point the SDK at the local endpoint:
+
 ```bash
-docker compose up -d
+docker compose --profile test up -d
+# Set DYNAMODB_ENDPOINT="http://localhost:8000" in .env.local
 pnpm db:init
 ```
 
-The init script is idempotent: it creates the table on first run, enables TTL, and reports "already exists" thereafter.
+The init script is idempotent: it creates the table on first run, enables TTL, and reports "already exists" thereafter. DynamoDB Local doesn't implement TTL — `pnpm db:init` swallows the resulting `UnknownOperationException` and warns.
 
 ### Production (real DynamoDB)
 

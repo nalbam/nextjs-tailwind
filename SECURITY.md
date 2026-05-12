@@ -18,7 +18,9 @@ In scope:
 - The Better Auth configuration in this repository (`src/lib/auth.ts`, `src/lib/auth/`).
 - The DynamoDB single-table adapter (`src/lib/auth/dynamodb-adapter.ts`).
 - Server-only handling of secrets (`src/lib/env.ts`).
-- The default API surface under `src/app/api/**`.
+- The default API surface under `src/app/api/**` (including the CSP report receiver at `/api/csp-report`).
+- The security headers + CSP defined in `next.config.ts`.
+- The open-redirect guard in `src/lib/safe-redirect.ts` (consumed by `/login` and `/signup` for `?redirect=`).
 
 Out of scope (please report upstream):
 - [Better Auth](https://github.com/better-auth/better-auth) core vulnerabilities.

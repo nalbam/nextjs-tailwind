@@ -44,6 +44,8 @@ docker compose --profile test up -d   # also starts DynamoDB Local + admin UI fo
 - `socialProviders.google` — registered only when *both* `AUTH_GOOGLE_ID` and `AUTH_GOOGLE_SECRET` are set. The client also reads `NEXT_PUBLIC_AUTH_GOOGLE_ENABLED` to decide whether to render the button (`src/app/(auth)/google-button.tsx`). Add new providers by extending the `socialProviders` block in `auth.ts` and a parallel client flag.
 - The auth pages handle every combination: email-only (default), Google-only, both, or neither (renders an instructional fallback).
 - `plugins: [nextCookies()]` so server actions get correct `Set-Cookie` semantics.
+- `rateLimit` runs only in `NODE_ENV=production` (60s window, 100 req) and uses `secondary-storage` when KV is configured, otherwise in-memory.
+- `advanced.cookies.sessionToken` pins `sameSite=lax`, `httpOnly`, and `secure` in production. `proxy.ts` looks for both `better-auth.session_token` and the `__Secure-` prefixed variant.
 - The `[...all]` route uses `toNextJsHandler((req) => getAuth().handler(req))` — keep the wrapper so `getAuth()` stays lazy.
 - `auth-client.ts` is `"use client"` and resolves `baseURL` from `clientEnv.NEXT_PUBLIC_BETTER_AUTH_URL` → `window.location.origin` → localhost fallback. Do not import it from server components.
 - Server-side session: `getSession()` in `src/lib/auth/session.ts` calls `auth.api.getSession({ headers })`.
