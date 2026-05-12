@@ -28,6 +28,11 @@ const minLevel: Level = ((): Level => {
   return process.env.NODE_ENV === "production" ? "info" : "debug";
 })();
 
+const hasProcessStreams =
+  typeof process !== "undefined" &&
+  typeof process.stdout?.write === "function" &&
+  typeof process.stderr?.write === "function";
+
 const writeLine = (level: Level, fields: Record<string, unknown>) => {
   if (SEVERITY[level] < SEVERITY[minLevel]) return;
   const line = JSON.stringify({
@@ -35,11 +40,19 @@ const writeLine = (level: Level, fields: Record<string, unknown>) => {
     time: new Date().toISOString(),
     ...fields,
   });
-  if (level === "error" || level === "warn") {
-    process.stderr.write(`${line}\n`);
-  } else {
-    process.stdout.write(`${line}\n`);
+  if (hasProcessStreams) {
+    // Node runtime: stdout/stderr separation is what CloudWatch / pino expect.
+    if (level === "error" || level === "warn") {
+      process.stderr.write(`${line}\n`);
+    } else {
+      process.stdout.write(`${line}\n`);
+    }
+    return;
   }
+  // Edge runtime / browser: no `process` streams. console.* is the only sink.
+  if (level === "error") console.error(line);
+  else if (level === "warn") console.warn(line);
+  else console.log(line);
 };
 
 const buildLogger = (bindings: Record<string, unknown>): Logger => {

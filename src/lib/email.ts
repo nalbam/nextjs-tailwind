@@ -15,6 +15,7 @@
  * branch in `getEmailService` and surface its env in `.env.example`.
  */
 
+import { getServerEnv } from "@/lib/env";
 import { logger } from "@/lib/logger";
 
 export interface EmailMessage {
@@ -34,7 +35,7 @@ let cached: EmailService | undefined;
 
 const buildSesService = async (from: string): Promise<EmailService> => {
   const { SESv2Client, SendEmailCommand } = await import("@aws-sdk/client-sesv2");
-  const client = new SESv2Client({ region: process.env.AWS_REGION });
+  const client = new SESv2Client({ region: getServerEnv().AWS_REGION });
   return {
     send: async ({ to, subject, text, html }) => {
       await client.send(
@@ -68,8 +69,9 @@ const buildConsoleService = (): EmailService => ({
 
 export const getEmailService = async (): Promise<EmailService> => {
   if (cached) return cached;
-  if (process.env.AWS_SES_FROM) {
-    cached = await buildSesService(process.env.AWS_SES_FROM);
+  const { AWS_SES_FROM } = getServerEnv();
+  if (AWS_SES_FROM) {
+    cached = await buildSesService(AWS_SES_FROM);
     return cached;
   }
   cached = buildConsoleService();

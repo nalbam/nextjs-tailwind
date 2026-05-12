@@ -54,6 +54,12 @@ Replace `<ACCOUNT_ID>` and the region/table name with your values.
 
 > Do **not** ship `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` as Amplify environment variables in production. The compute role's IAM credentials are picked up automatically by the AWS SDK's default credential chain.
 
+### Tightening the policy: dropping `Scan`
+
+The adapter only falls back to `Scan` when a query touches a non-indexed field — for the default Better Auth surface (`user/session/account/verification`) this should never happen. Once you've verified your deployment doesn't trigger the fallback (watch for `dynamodb-adapter.scan-fallback` warnings in CloudWatch), remove `dynamodb:Scan` from the policy so an accidental future code path fails loudly with `AccessDeniedException` instead of running silently.
+
+If a plugin you add later does need scans, prefer to introduce a new GSI keyed on the queried field instead of widening the IAM policy.
+
 If you set `AWS_SES_FROM` to enable transactional email, also attach an SES statement to the same role:
 
 ```json

@@ -7,6 +7,9 @@ applications:
           commands:
             - corepack enable
             - corepack prepare pnpm@11.0.6 --activate
+            # Pin pnpm's content-addressable store inside the repo so the
+            # `.pnpm-store/**` cache entry below actually rehydrates.
+            - pnpm config set store-dir .pnpm-store
             - pnpm install --frozen-lockfile
         build:
           commands:

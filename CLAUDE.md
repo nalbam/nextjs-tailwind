@@ -16,11 +16,12 @@ pnpm typecheck          # tsc --noEmit
 pnpm format             # Prettier write
 pnpm test               # Vitest run
 pnpm test:watch
-pnpm db:init            # create DynamoDB table + GSI1 + TTL
-docker compose up -d    # DynamoDB Local + Valkey + DynamoDB admin
+pnpm db:init            # provision DynamoDB table + GSI1 + TTL (real AWS by default)
+docker compose up -d    # Valkey only (KV)
+docker compose --profile test up -d   # also starts DynamoDB Local + admin UI for integration tests
 ```
 
-`.env.local` must be populated before `pnpm dev`. `BETTER_AUTH_SECRET` (≥ 32 chars) is required — `getServerEnv()` throws fast if missing.
+`.env.local` must be populated before `pnpm dev`. `BETTER_AUTH_SECRET` (≥ 32 chars) is required — `getServerEnv()` throws fast if missing. Local AWS credentials (via `~/.aws/credentials`, `AWS_PROFILE`, or SSO) must be available since dev hits the real DynamoDB table by default.
 
 ## Stack & conventions
 
@@ -108,3 +109,5 @@ Target: **AWS Amplify Hosting (SSR)**. Full guide in [`docs/amplify-deploy.md`](
 - `pnpm-workspace.yaml` exists with `packages: []` so pnpm 11 stops complaining about missing packages while still honoring `allowBuilds` (esbuild/sharp/unrs-resolver opt-ins).
 - `next/font/local` requires the woff2 to be a literal path — it cannot reach into `node_modules`. The postinstall copy script is intentional, do not refactor it into a build-time copy.
 - DynamoDB Local doesn't support TTL — `pnpm db:init` swallows the `UnknownOperationException` and warns. Production DynamoDB does support it.
+- Local dev defaults to **real AWS DynamoDB** (uses the local AWS credential chain). To use DynamoDB Local instead, start the `test` Compose profile and set `DYNAMODB_ENDPOINT="http://localhost:8000"`.
+- `pnpm db:init` waits for the table to become `ACTIVE` after `CreateTable` before enabling TTL — real AWS returns from CreateTable while the table is still in `CREATING` state.

@@ -15,6 +15,7 @@ import {
   DynamoDBClient,
   ResourceNotFoundException,
   UpdateTimeToLiveCommand,
+  waitUntilTableExists,
 } from "@aws-sdk/client-dynamodb";
 import { config as loadEnv } from "dotenv";
 import { existsSync } from "node:fs";
@@ -74,7 +75,13 @@ const createTable = async (): Promise<void> => {
       ],
     }),
   );
-  console.log(`[init-dynamodb] Created.`);
+  console.log(`[init-dynamodb] Submitted. Waiting for ACTIVE…`);
+  // Real AWS DynamoDB returns from CreateTable while the table is still in
+  // CREATING state — subsequent UpdateTimeToLive calls fail with
+  // ResourceNotFoundException until it transitions to ACTIVE. DynamoDB Local
+  // is instant, so this only matters against real AWS.
+  await waitUntilTableExists({ client, maxWaitTime: 120 }, { TableName: tableName });
+  console.log(`[init-dynamodb] Active.`);
 };
 
 const enableTtl = async (): Promise<void> => {

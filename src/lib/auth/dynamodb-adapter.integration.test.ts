@@ -48,6 +48,7 @@ describe.runIf(true)("dynamodb-adapter integration", () => {
   const userId = `${SUITE_TAG}_user_a`;
   const sessionId = `${SUITE_TAG}_sess_a`;
   const accountId = `${SUITE_TAG}_acct_a`;
+  const verificationId = `${SUITE_TAG}_verif_a`;
 
   it("creates and retrieves a user by email and id", async () => {
     if (!available) return;
@@ -185,5 +186,64 @@ describe.runIf(true)("dynamodb-adapter integration", () => {
         { field: "id", value: accountId, operator: "eq", connector: "AND", mode: "sensitive" },
       ],
     });
+  });
+
+  it("creates a verification, finds it by identifier, and deletes it", async () => {
+    if (!available) return;
+    const identifier = `${SUITE_TAG}_verify@example.com`;
+    const expires = new Date(Date.now() + 60 * 60 * 1000);
+    await adapter.create({
+      model: "verification",
+      data: {
+        id: verificationId,
+        identifier,
+        value: "token-value-12345",
+        expiresAt: expires,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+    });
+
+    const byIdentifier = await adapter.findOne({
+      model: "verification",
+      where: [
+        {
+          field: "identifier",
+          value: identifier,
+          operator: "eq",
+          connector: "AND",
+          mode: "sensitive",
+        },
+      ],
+    });
+    expect(byIdentifier).not.toBeNull();
+    expect((byIdentifier as { id: string }).id).toBe(verificationId);
+
+    await adapter.delete({
+      model: "verification",
+      where: [
+        {
+          field: "id",
+          value: verificationId,
+          operator: "eq",
+          connector: "AND",
+          mode: "sensitive",
+        },
+      ],
+    });
+
+    const after = await adapter.findOne({
+      model: "verification",
+      where: [
+        {
+          field: "id",
+          value: verificationId,
+          operator: "eq",
+          connector: "AND",
+          mode: "sensitive",
+        },
+      ],
+    });
+    expect(after).toBeNull();
   });
 });

@@ -30,7 +30,7 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#020617" },
+    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
     { media: "(prefers-color-scheme: dark)", color: "#020617" },
   ],
 };
@@ -41,7 +41,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ko" className={pretendard.variable}>
+    // suppressHydrationWarning silences mismatches caused by browser
+    // extensions (e.g., translation toolbars, password managers, accessibility
+    // extensions) that inject attributes onto <html> before React hydrates.
+    // It does NOT silence mismatches inside the React tree itself.
+    <html lang="ko" className={pretendard.variable} suppressHydrationWarning>
       <body>
         {children}
         <Toaster />

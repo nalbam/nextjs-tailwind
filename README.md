@@ -31,7 +31,7 @@ flowchart LR
   BA -. "verification / reset" .-> SES
 ```
 
-For local development, Upstash is replaced by docker-compose Valkey and DynamoDB by DynamoDB Local.
+For local development, Upstash is replaced by docker-compose Valkey while DynamoDB stays the real AWS table (the SDK uses your local AWS credential chain). DynamoDB Local is optional and lives behind the `test` Compose profile for integration tests.
 
 ## Stack
 
@@ -46,13 +46,16 @@ For local development, Upstash is replaced by docker-compose Valkey and DynamoDB
 
 ## Quick start
 
+You need AWS credentials configured locally (e.g., `aws configure`, `aws sso login`, or `AWS_PROFILE`) — the dev server signs DynamoDB requests with the default credential chain.
+
 ```bash
 cp .env.example .env.local
 # Set BETTER_AUTH_SECRET (e.g., openssl rand -base64 32)
+# Adjust AWS_REGION / DYNAMODB_TABLE_NAME if needed
 
-docker compose up -d         # DynamoDB Local + Valkey + DynamoDB admin UI
+docker compose up -d         # Valkey only (KV for Better Auth secondaryStorage)
 pnpm install
-pnpm db:init                 # creates the table + GSI1 + TTL
+pnpm db:init                 # creates the table + GSI1 + TTL on real AWS
 pnpm dev                     # http://localhost:3000
 ```
 
@@ -61,7 +64,9 @@ Try the demo flow:
 1. `/signup` → create an account.
 2. `/dashboard` → server-rendered protected route, shows the session.
 3. Sign out, then `/login`.
-4. Inspect rows at <http://localhost:8001> (DynamoDB admin) and Valkey via `docker exec starter-valkey valkey-cli keys '*'`.
+4. Inspect rows in the AWS DynamoDB console and the Valkey KV via `docker exec starter-valkey valkey-cli keys '*'`.
+
+> **Want fully offline dev?** Run `docker compose --profile test up -d` to also start DynamoDB Local + the admin UI on `http://localhost:8001`, and set `DYNAMODB_ENDPOINT="http://localhost:8000"` in `.env.local`.
 
 ## Scripts
 
@@ -74,7 +79,7 @@ Try the demo flow:
 | `pnpm typecheck` | `tsc --noEmit` |
 | `pnpm format` / `format:check` | Prettier |
 | `pnpm test` / `test:watch` / `test:ui` | Vitest |
-| `pnpm db:init` | Create the application table on DynamoDB Local (or any endpoint) |
+| `pnpm db:init` | Create the application table + GSI1 + TTL on the configured DynamoDB endpoint (real AWS by default, or DynamoDB Local when `DYNAMODB_ENDPOINT` is set) |
 
 ## Project layout
 

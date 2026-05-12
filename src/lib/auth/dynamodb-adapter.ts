@@ -22,6 +22,7 @@ import {
 import { createAdapterFactory, type CleanedWhere } from "better-auth/adapters";
 
 import { getDocumentClient, getTableName, ttlFromDate } from "@/lib/dynamodb";
+import { logger } from "@/lib/logger";
 
 type Item = Record<string, unknown>;
 
@@ -107,7 +108,8 @@ const stripInternalKeys = (item: Item): Item => {
   return rest;
 };
 
-const evalClause = (record: Item, clause: CleanedWhere): boolean => {
+// Exported for unit tests only. Treat as an internal helper.
+export const evalClause = (record: Item, clause: CleanedWhere): boolean => {
   const { field, value, operator, mode } = clause;
   const recordValue = record[field];
   const insensitive =
@@ -150,20 +152,23 @@ const evalClause = (record: Item, clause: CleanedWhere): boolean => {
     case "ne":
       return lower(recordValue) !== lower(value);
     case "gt":
-      return value !== null && (recordValue as number) > (value as number);
     case "gte":
-      return value !== null && (recordValue as number) >= (value as number);
     case "lt":
-      return value !== null && (recordValue as number) < (value as number);
-    case "lte":
-      return value !== null && (recordValue as number) <= (value as number);
+    case "lte": {
+      if (typeof recordValue !== "number" || typeof value !== "number") return false;
+      if (operator === "gt") return recordValue > value;
+      if (operator === "gte") return recordValue >= value;
+      if (operator === "lt") return recordValue < value;
+      return recordValue <= value;
+    }
     case "eq":
     default:
       return lower(recordValue) === lower(value);
   }
 };
 
-const matchesAll = (record: Item, where: CleanedWhere[]): boolean => {
+// Exported for unit tests only. Treat as an internal helper.
+export const matchesAll = (record: Item, where: CleanedWhere[]): boolean => {
   if (where.length === 0) return true;
   const first = where[0];
   if (!first) return true;
@@ -291,6 +296,12 @@ const fetchByWhere = async (model: string, where: CleanedWhere[]): Promise<Item[
     const items = await queryGSI1(gsi1);
     return items.filter((r) => matchesAll(r, where));
   }
+  // No indexed access path matched — full entity Scan is expensive in
+  // production. Surface it so operators can add an index or change the call.
+  logger.warn("dynamodb-adapter.scan-fallback", {
+    model,
+    fields: where.map((w) => w.field),
+  });
   const items = await scanByEntity(model);
   return items.filter((r) => matchesAll(r, where));
 };
@@ -411,48 +422,54 @@ export const dynamodbAdapter = createAdapterFactory({
 
       updateMany: async ({ model, where, update }) => {
         const records = await fetchByWhere(model, where);
-        for (const record of records) {
-          const merged = { ...stripInternalKeys(record), ...update };
-          const id = assertId(merged);
-          const primary = buildPrimaryKey(model, id);
-          const gsi1 = buildGSI1Key(model, merged);
-          const ttl = buildTtl(model, merged);
-          const nextItem: Item = {
-            ...primary,
-            ...(gsi1 ?? {}),
-            ...(ttl !== undefined ? { ttl } : {}),
-            entity: entityPrefix(model),
-            ...merged,
-          };
-          await client().send(new PutCommand({ TableName: tableName(), Item: nextItem }));
-        }
+        await Promise.all(
+          records.map((record) => {
+            const merged = { ...stripInternalKeys(record), ...update };
+            const id = assertId(merged);
+            const primary = buildPrimaryKey(model, id);
+            const gsi1 = buildGSI1Key(model, merged);
+            const ttl = buildTtl(model, merged);
+            const nextItem: Item = {
+              ...primary,
+              ...(gsi1 ?? {}),
+              ...(ttl !== undefined ? { ttl } : {}),
+              entity: entityPrefix(model),
+              ...merged,
+            };
+            return client().send(new PutCommand({ TableName: tableName(), Item: nextItem }));
+          }),
+        );
         return records.length;
       },
 
       delete: async ({ model, where }) => {
         const records = await fetchByWhere(model, where);
-        for (const record of records) {
-          const id = assertId(record);
-          await client().send(
-            new DeleteCommand({
-              TableName: tableName(),
-              Key: buildPrimaryKey(model, id),
-            }),
-          );
-        }
+        await Promise.all(
+          records.map((record) => {
+            const id = assertId(record);
+            return client().send(
+              new DeleteCommand({
+                TableName: tableName(),
+                Key: buildPrimaryKey(model, id),
+              }),
+            );
+          }),
+        );
       },
 
       deleteMany: async ({ model, where }) => {
         const records = await fetchByWhere(model, where);
-        for (const record of records) {
-          const id = assertId(record);
-          await client().send(
-            new DeleteCommand({
-              TableName: tableName(),
-              Key: buildPrimaryKey(model, id),
-            }),
-          );
-        }
+        await Promise.all(
+          records.map((record) => {
+            const id = assertId(record);
+            return client().send(
+              new DeleteCommand({
+                TableName: tableName(),
+                Key: buildPrimaryKey(model, id),
+              }),
+            );
+          }),
+        );
         return records.length;
       },
     };

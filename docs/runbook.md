@@ -4,22 +4,38 @@ Common operational scenarios. Each section is self-contained — you should be a
 
 ## Spin up local development from a clean clone
 
+Default mode: real AWS DynamoDB + local Valkey for KV. Make sure your AWS credentials are configured (`aws configure`, `aws sso login`, or `AWS_PROFILE`).
+
 ```bash
 nvm use            # Node 22 (per .nvmrc)
 corepack enable    # picks pnpm 11.0.6 from packageManager pin
 pnpm install
 cp .env.example .env.local
 # Fill BETTER_AUTH_SECRET (openssl rand -base64 32)
-docker compose up -d
-pnpm db:init
+# Adjust AWS_REGION / DYNAMODB_TABLE_NAME as needed
+docker compose up -d           # Valkey only (KV for Better Auth secondaryStorage)
+pnpm db:init                   # creates the table on real AWS
 pnpm dev
 ```
 
 Sanity check:
 - <http://localhost:3000> renders the landing page
 - <http://localhost:3000/api/health> → 200 OK
-- <http://localhost:8001> shows the `app-main` table with GSI1
+- The DynamoDB table is visible in the AWS console under the configured region
 - `docker exec starter-valkey valkey-cli ping` → `PONG`
+
+### Offline / integration-test mode
+
+Use DynamoDB Local instead of real AWS:
+
+```bash
+docker compose --profile test up -d   # adds dynamodb-local + admin UI
+# Set DYNAMODB_ENDPOINT="http://localhost:8000" in .env.local
+pnpm db:init
+pnpm dev
+```
+
+The admin UI is at <http://localhost:8001>. CI uses the same DynamoDB Local container.
 
 ## Provision a fresh production DynamoDB table
 

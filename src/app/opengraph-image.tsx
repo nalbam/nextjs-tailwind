@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 
 import { ImageResponse } from "next/og";
@@ -14,8 +14,8 @@ const fontDir = join(process.cwd(), "src", "app", "fonts");
 
 export default async function OgImage() {
   const [bold, regular] = await Promise.all([
-    readFileSync(join(fontDir, "Pretendard-Bold.woff")),
-    readFileSync(join(fontDir, "Pretendard-Regular.woff")),
+    readFile(join(fontDir, "Pretendard-Bold.woff")),
+    readFile(join(fontDir, "Pretendard-Regular.woff")),
   ]);
 
   return new ImageResponse(

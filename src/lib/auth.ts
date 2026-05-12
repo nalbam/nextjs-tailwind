@@ -19,17 +19,25 @@ const createAuthInstance = () => {
         }
       : undefined;
 
+  const useSecondary = hasSecondaryStorage();
+
   return betterAuth({
     appName: clientEnv.NEXT_PUBLIC_APP_NAME,
     secret: env.BETTER_AUTH_SECRET,
     baseURL: env.BETTER_AUTH_URL ?? clientEnv.NEXT_PUBLIC_BETTER_AUTH_URL,
     trustedOrigins,
     database: dynamodbAdapter,
-    secondaryStorage: hasSecondaryStorage() ? secondaryStorage : undefined,
+    secondaryStorage: useSecondary ? secondaryStorage : undefined,
     emailAndPassword: {
       enabled: env.AUTH_EMAIL_ENABLED,
     },
     socialProviders,
+    rateLimit: {
+      enabled: env.NODE_ENV === "production",
+      window: 60,
+      max: 100,
+      storage: useSecondary ? "secondary-storage" : "memory",
+    },
     advanced: {
       cookies: {
         sessionToken: {

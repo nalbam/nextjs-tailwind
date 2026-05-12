@@ -6,6 +6,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 
 import { GoogleButton } from "@/app/(auth)/google-button";
+import { OrSeparator } from "@/app/(auth)/or-separator";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -95,15 +96,5 @@ export default function LoginPage() {
         ) : null}
       </CardContent>
     </Card>
-  );
-}
-
-function OrSeparator() {
-  return (
-    <div className="border-border relative my-1 flex items-center">
-      <span className="bg-border h-px flex-1" />
-      <span className="text-muted-foreground px-3 text-xs uppercase tracking-wider">or</span>
-      <span className="bg-border h-px flex-1" />
-    </div>
   );
 }
